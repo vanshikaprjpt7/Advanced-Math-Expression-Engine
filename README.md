@@ -58,7 +58,19 @@ Our project provides a systematic approach for validating, converting, and evalu
 
 - C++ compiler 
 - Visual Studio Code
-- Git 
+- Git
+
+---
+
+## MAJOR FEATURES &MODULES:- 
+
+- Input & Validation – Validates mathematical expressions and parentheses.
+- Stack Processing – Handles operators, precedence, and conversion.
+- Expression Conversion – Supports Infix, Prefix, and Postfix notation.
+- Expression Evaluation – Evaluates Prefix and Postfix expressions.
+- Expression Tree – Builds a Binary Expression Tree to represent expressions.
+- Tree Traversal – Uses recursion for Inorder, Preorder, and Postorder traversal.
+- Error Handling – Detects invalid expressions and input errors.
 
 ### Clone the Repository
 
