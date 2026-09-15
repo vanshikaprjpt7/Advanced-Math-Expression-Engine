@@ -56,9 +56,9 @@ Our project provides a systematic approach for validating, converting, and evalu
 
 ### Prerequisites
 
-- C++ compiler (G++, MinGW, or any standard C++ compiler)
-- Visual Studio Code (recommended)
-- Git (optional, for cloning the repository)
+- C++ compiler 
+- Visual Studio Code
+- Git 
 
 ### Clone the Repository
 
