@@ -62,6 +62,5 @@ Our project provides a systematic approach for validating, converting, and evalu
 
 ### Clone the Repository
 
-```bash
-git clone <repository-link>
-cd <repository-folder>
+```bash  
+git clone  https://github.com/vanshikaprjpt7/Advanced-Math-Expression-Engine.git
