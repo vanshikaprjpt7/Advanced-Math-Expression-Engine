@@ -8,6 +8,7 @@ using namespace std;
 
 class Converter{
     public:
+    
     bool isOperator(const string &token);
     int precedence(const string &op);
     bool isRightAssociative(const string &op);
