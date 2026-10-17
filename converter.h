@@ -1,19 +1,8 @@
 #ifndef CONVERTER_H
 #define CONVERTER_H
-
-#include<string>
-#include<vector>
-
+#include <string>
 using namespace std;
-
-class Converter{
-    public:
-    
-    bool isOperator(const string &token);
-    int precedence(const string &op);
-    bool isRightAssociative(const string &op);
-    vector<string> infixToPostfix(vector<string> tokens);
-    vector<string> infixToPrefix(vector<string> tokens);
-};
-
+int precedence(char ch);
+string infixToPostfix(string infix);
+string infixToPrefix(string infix);
 #endif
