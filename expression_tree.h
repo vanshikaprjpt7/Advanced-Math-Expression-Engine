@@ -5,7 +5,7 @@
 using namespace std;
 struct Node
 {
-    char data;
+    string data;
     Node *left;
     Node *right;
 };
@@ -13,6 +13,6 @@ Node* buildExpressionTree(string postfix);
 void preorder(Node *root);
 void inorder(Node *root);
 void postorder(Node *root);
-int evaluateTree(Node *root);
+double evaluateTree(Node *root);
 void deleteTree(Node *root);
 #endif
