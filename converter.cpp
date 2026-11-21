@@ -1,94 +1,152 @@
-#include <iostream>
-#include <stack>
-#include <string>
-#include <cctype>
 #include "converter.h"
+#include <stack>
 using namespace std;
-int precedence(char ch){
-    if(ch=='^')
+bool Converter::isOperator(string token)
+{
+    if(token == "+" || token == "-" ||
+       token == "*" || token == "/" ||
+       token == "%" || token == "^")
+    {
+        return true;
+    }
+    return false;
+}
+int Converter::precedence(string op)
+{
+    if(op == "^")
+    {
         return 3;
-    else if(ch=='*' || ch=='/')
+    }
+    if(op == "*" || op == "/" || op == "%")
+    {
         return 2;
-    else if(ch=='+' || ch=='-')
+    }
+    if(op == "+" || op == "-")
+    {
         return 1;
+    }
     return 0;
 }
-string infixToPostfix(string infix){
-    stack<char> st;
-    string postfix="";
-    for(int i=0;i<infix.length();i++){
-        char ch=infix[i];
-        if(ch==' ')
-            continue;
-        if(isalnum(ch)){
-            postfix+=ch;
-            postfix+=' ';
+int Converter::infixToPostfix(string tokens[], int n, string postfix[])
+{
+    stack<string> s;
+    int j = 0;
+    for(int i = 0; i < n; i++)
+    {
+        string token = tokens[i];
+        if(!isOperator(token) && token != "(" && token != ")")
+        {
+            postfix[j] = token;
+            j++;
         }
-        else if(ch=='('){
-            st.push(ch);
+        else if(token == "(")
+        {
+            s.push(token);
         }
-        else if(ch==')'){
-            while(!st.empty() && st.top()!='('){
-                postfix+=st.top();
-                postfix+=' ';
-                st.pop();
+        else if(token == ")")
+        {
+            while(!s.empty() && s.top() != "(")
+            {
+                postfix[j] = s.top();
+                j++;
+                s.pop();
             }
-            if(st.empty())
-                return "Invalid expression";
 
-            st.pop();
-        }
-        else if(ch=='+' || ch=='-' || ch=='*' ||
-                ch=='/' || ch=='^'){
-
-            while(!st.empty() && st.top()!='(' &&
-                (precedence(st.top())>precedence(ch) ||
-                (precedence(st.top())==precedence(ch) && ch!='^'))){
-
-                postfix+=st.top();
-                postfix+=' ';
-                st.pop();
+            if(!s.empty())
+            {
+                s.pop();
             }
-            st.push(ch);
         }
-        else{
-            return "Invalid expression";
+        else
+        {
+            while(!s.empty() &&
+                  s.top() != "(" &&
+                  (precedence(s.top()) > precedence(token) ||
+                  (precedence(s.top()) == precedence(token) && token != "^")))
+            {
+                postfix[j] = s.top();
+                j++;
+                s.pop();
+            }
+
+            s.push(token);
         }
     }
-    while(!st.empty()){
-        if(st.top()=='(')
-            return "Invalid expression";
-
-        postfix+=st.top();
-        postfix+=' ';
-        st.pop();
+    while(!s.empty())
+    {
+        postfix[j] = s.top();
+        j++;
+        s.pop();
     }
-    return postfix;
+    return j;
 }
-string infixToPrefix(string infix){
-    string postfix=infixToPostfix(infix);
-    if(postfix=="Invalid expression")
-        return "Invalid expression";
-    stack<string> st;
-    for(int i=0;i<postfix.length();i++){
-        char ch=postfix[i];
-        if(ch==' ')
-            continue;
-        if(isalnum(ch)){
-            st.push(string(1,ch));
+int Converter::infixToPrefix(string tokens[], int n, string prefix[])
+{
+    string reversed[100];
+    string temp[100];
+    int j = 0;
+    for(int i = 0; i < n; i++)
+    {
+        reversed[i] = tokens[n - i - 1];
+        if(reversed[i] == "(")
+        {
+            reversed[i] = ")";
         }
-        else{
-            if(st.size()<2)
-                return "Invalid expression";
-            string b=st.top();
-            st.pop();
-            string a=st.top();
-            st.pop();
-            string temp=string(1,ch)+" "+a+" "+b;
-            st.push(temp);
+        else if(reversed[i] == ")")
+        {
+            reversed[i] = "(";
         }
     }
-    if(st.size()!=1)
-        return "Invalid expression";
-    return st.top();
+    stack<string> s;
+    for(int i = 0; i < n; i++)
+    {
+        string token = reversed[i];
+        if(!isOperator(token) && token != "(" && token != ")")
+        {
+            temp[j] = token;
+            j++;
+        }
+        else if(token == "(")
+        {
+            s.push(token);
+        }
+        else if(token == ")")
+        {
+            while(!s.empty() && s.top() != "(")
+            {
+                temp[j] = s.top();
+                j++;
+                s.pop();
+            }
+            if(!s.empty())
+            {
+                s.pop();
+            }
+        }
+        else
+        {
+            while(!s.empty() &&
+                  s.top() != "(" &&
+                  (precedence(s.top()) > precedence(token) ||
+                  (precedence(s.top()) == precedence(token) && token == "^")))
+            {
+                temp[j] = s.top();
+                j++;
+                s.pop();
+            }
+            s.push(token);
+        }
+    }
+    while(!s.empty())
+    {
+        temp[j] = s.top();
+        j++;
+        s.pop();
+    }
+    for(int i = 0; i < j; i++)
+    {
+        prefix[i] = temp[j - i - 1];
+    }
+
+    return j;
 }
