@@ -1,0 +1,825 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ExprGuard | Math Expression Engine</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #0b1020;
+            color: #e5e7eb;
+            min-height: 100vh;
+        }
+
+        header {
+            padding: 25px 7%;
+            background: #111827;
+            border-bottom: 1px solid #263247;
+        }
+
+        header h1 {
+            color: #7dd3fc;
+            font-size: 28px;
+        }
+
+        header p {
+            color: #9ca3af;
+            margin-top: 8px;
+        }
+
+        .container {
+            width: 86%;
+            max-width: 1200px;
+            margin: 35px auto;
+        }
+
+        .input-card,
+        .result-card {
+            background: #151e31;
+            border: 1px solid #29364d;
+            padding: 23px;
+            border-radius: 12px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 15px;
+            background: #0b1020;
+            color: white;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            font-size: 18px;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: 2px solid #38bdf8;
+        }
+
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+            background: #0284c7;
+            color: white;
+        }
+
+        button:hover {
+            background: #0369a1;
+        }
+
+        .clear-btn {
+            background: #374151;
+        }
+
+        .status {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .success {
+            color: #4ade80;
+        }
+
+        .error {
+            color: #f87171;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+            margin-top: 25px;
+        }
+
+        .result-card h3 {
+            color: #7dd3fc;
+            margin-bottom: 15px;
+        }
+
+        .result {
+            font-size: 16px;
+            line-height: 1.8;
+            overflow-wrap: anywhere;
+        }
+
+        .tree {
+            font-family: monospace;
+            white-space: pre-wrap;
+            color: #a5f3fc;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #6b7280;
+        }
+
+        @media (max-width: 750px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                width: 92%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>ExprGuard</h1>
+        <p>Advanced Mathematical Expression Processing System</p>
+    </header>
+
+    <div class="container">
+
+        <div class="input-card">
+
+            <h2>Enter Mathematical Expression</h2>
+
+            <textarea
+                id="expression"
+                placeholder="Example: (2 + 3) * 4">
+            </textarea>
+
+            <div class="buttons">
+
+                <button onclick="processExpression()">
+                    Process Expression
+                </button>
+
+                <button class="clear-btn" onclick="clearAll()">
+                    Clear
+                </button>
+
+            </div>
+
+            <p id="status" class="status"></p>
+
+        </div>
+
+        <div class="grid">
+
+            <div class="result-card">
+
+                <h3>Expression Conversion</h3>
+
+                <p class="result">
+                    <b>Infix:</b>
+                    <span id="infix">-</span>
+                </p>
+
+                <p class="result">
+                    <b>Postfix:</b>
+                    <span id="postfix">-</span>
+                </p>
+
+                <p class="result">
+                    <b>Prefix:</b>
+                    <span id="prefix">-</span>
+                </p>
+
+            </div>
+
+            <div class="result-card">
+
+                <h3>Expression Evaluation</h3>
+
+                <p class="result">
+                    <b>Result:</b>
+                    <span id="answer">-</span>
+                </p>
+
+                <p class="result">
+                    <b>Tree Evaluation:</b>
+                    <span id="treeAnswer">-</span>
+                </p>
+
+            </div>
+
+            <div class="result-card">
+
+                <h3>ExprGuard Risk Analysis</h3>
+
+                <p class="result" id="risk">
+                    No analysis performed.
+                </p>
+
+            </div>
+
+            <div class="result-card">
+
+                <h3>Expression Simplification</h3>
+
+                <p class="result" id="simplified">
+                    -
+                </p>
+
+            </div>
+
+            <div class="result-card">
+
+                <h3>Expression Tree</h3>
+
+                <div class="result tree" id="tree">
+                    Tree will appear here.
+                </div>
+
+            </div>
+
+            <div class="result-card">
+
+                <h3>Repeated Subexpression Detection</h3>
+
+                <p class="result" id="repeated">
+                    -
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <footer>
+        Advanced Mathematical Expression Processing System
+        <br>
+        C++ DSA Project | Frontend Prototype
+    </footer>
+
+    <script>
+
+        // 1. TOKENIZER
+
+        function tokenize(expression) {
+
+            const tokens = expression.match(
+                /\d+(?:\.\d+)?|[a-zA-Z]+|[+\-*/^()]|\S/g
+            );
+
+            return tokens || [];
+        }
+
+
+        // 2. VALIDATOR
+
+        function validate(tokens) {
+
+            if (tokens.length === 0) {
+                throw new Error("Expression cannot be empty.");
+            }
+
+            let balance = 0;
+
+            for (let i = 0; i < tokens.length; i++) {
+
+                let token = tokens[i];
+
+                if (token === "(") {
+                    balance++;
+                }
+
+                if (token === ")") {
+                    balance--;
+
+                    if (balance < 0) {
+                        throw new Error("Incorrect parentheses.");
+                    }
+                }
+
+                const validToken =
+                    /^\d+(?:\.\d+)?$/.test(token) ||
+                    /^[a-zA-Z]+$/.test(token) ||
+                    ["+", "-", "*", "/", "^", "(", ")"].includes(token);
+
+                if (!validToken) {
+                    throw new Error("Invalid character: " + token);
+                }
+
+                if (i > 0) {
+
+                    const previous = tokens[i - 1];
+
+                    const previousOperand =
+                        /^\d+(?:\.\d+)?$/.test(previous) ||
+                        /^[a-zA-Z]+$/.test(previous) ||
+                        previous === ")";
+
+                    const currentOperand =
+                        /^\d+(?:\.\d+)?$/.test(token) ||
+                        /^[a-zA-Z]+$/.test(token) ||
+                        token === "(";
+
+                    if (previousOperand && currentOperand) {
+                        throw new Error("Missing operator.");
+                    }
+                }
+            }
+
+            if (balance !== 0) {
+                throw new Error("Parentheses are not balanced.");
+            }
+
+            if (isOperator(tokens[0])) {
+                throw new Error("Expression cannot start with an operator.");
+            }
+
+            if (isOperator(tokens[tokens.length - 1])) {
+                throw new Error("Expression cannot end with an operator.");
+            }
+
+            return true;
+        }
+
+
+        // 3. OPERATOR FUNCTIONS
+
+        function isOperator(token) {
+
+            return ["+", "-", "*", "/", "^"].includes(token);
+        }
+
+
+        function precedence(operator) {
+
+            if (operator === "^") return 3;
+
+            if (operator === "*" || operator === "/") return 2;
+
+            if (operator === "+" || operator === "-") return 1;
+
+            return 0;
+        }
+
+
+        // 4. INFIX TO POSTFIX
+
+        function infixToPostfix(tokens) {
+
+            let output = [];
+            let stack = [];
+
+            for (let token of tokens) {
+
+                if (
+                    /^\d+(?:\.\d+)?$/.test(token) ||
+                    /^[a-zA-Z]+$/.test(token)
+                ) {
+
+                    output.push(token);
+                }
+
+                else if (token === "(") {
+
+                    stack.push(token);
+                }
+
+                else if (token === ")") {
+
+                    while (
+                        stack.length > 0 &&
+                        stack[stack.length - 1] !== "("
+                    ) {
+
+                        output.push(stack.pop());
+                    }
+
+                    stack.pop();
+                }
+
+                else if (isOperator(token)) {
+
+                    while (
+                        stack.length > 0 &&
+                        isOperator(stack[stack.length - 1]) &&
+                        (
+                            precedence(stack[stack.length - 1]) >
+                            precedence(token) ||
+                            (
+                                precedence(stack[stack.length - 1]) ===
+                                precedence(token) &&
+                                token !== "^"
+                            )
+                        )
+                    ) {
+
+                        output.push(stack.pop());
+                    }
+
+                    stack.push(token);
+                }
+            }
+
+            while (stack.length > 0) {
+                output.push(stack.pop());
+            }
+
+            return output;
+        }
+
+
+        // 5. INFIX TO PREFIX
+
+        function infixToPrefix(tokens) {
+
+            let reversed = [...tokens].reverse();
+
+            reversed = reversed.map(token => {
+
+                if (token === "(") return ")";
+
+                if (token === ")") return "(";
+
+                return token;
+            });
+
+            let postfix = infixToPostfix(reversed);
+
+            return postfix.reverse();
+        }
+
+
+        // 6. POSTFIX EVALUATION
+
+        function evaluatePostfix(postfix) {
+
+            let stack = [];
+
+            for (let token of postfix) {
+
+                if (/^\d+(?:\.\d+)?$/.test(token)) {
+
+                    stack.push(Number(token));
+                }
+
+                else if (isOperator(token)) {
+
+                    if (stack.length < 2) {
+                        throw new Error("Invalid expression.");
+                    }
+
+                    let b = stack.pop();
+                    let a = stack.pop();
+                    let result;
+
+                    switch (token) {
+
+                        case "+":
+                            result = a + b;
+                            break;
+
+                        case "-":
+                            result = a - b;
+                            break;
+
+                        case "*":
+                            result = a * b;
+                            break;
+
+                        case "/":
+
+                            if (b === 0) {
+                                throw new Error("Division by zero.");
+                            }
+
+                            result = a / b;
+                            break;
+
+                        case "^":
+                            result = Math.pow(a, b);
+                            break;
+                    }
+
+                    stack.push(result);
+                }
+
+                else {
+                    throw new Error(
+                        "Cannot evaluate variable: " + token
+                    );
+                }
+            }
+
+            if (stack.length !== 1) {
+                throw new Error("Invalid expression.");
+            }
+
+            return stack[0];
+        }
+
+
+        // 7. BUILD EXPRESSION TREE
+
+        function buildTree(postfix) {
+
+            let stack = [];
+
+            for (let token of postfix) {
+
+                if (!isOperator(token)) {
+
+                    stack.push({
+                        value: token,
+                        left: null,
+                        right: null
+                    });
+                }
+
+                else {
+
+                    let right = stack.pop();
+                    let left = stack.pop();
+
+                    stack.push({
+                        value: token,
+                        left: left,
+                        right: right
+                    });
+                }
+            }
+
+            return stack[0];
+        }
+
+
+        // 8. DISPLAY TREE
+
+        function treeToText(node, prefix = "", isLeft = true) {
+
+            if (node === null) {
+                return "";
+            }
+
+            let result = "";
+
+            result += prefix;
+            result += isLeft ? "├── " : "└── ";
+            result += node.value + "\n";
+
+            result += treeToText(
+                node.left,
+                prefix + (isLeft ? "│   " : "    "),
+                true
+            );
+
+            result += treeToText(
+                node.right,
+                prefix + (isLeft ? "│   " : "    "),
+                false
+            );
+
+            return result;
+        }
+
+
+        // 9. TREE EVALUATION
+
+        function evaluateTree(node) {
+
+            if (!isOperator(node.value)) {
+                return Number(node.value);
+            }
+
+            let left = evaluateTree(node.left);
+            let right = evaluateTree(node.right);
+
+            switch (node.value) {
+
+                case "+":
+                    return left + right;
+
+                case "-":
+                    return left - right;
+
+                case "*":
+                    return left * right;
+
+                case "/":
+
+                    if (right === 0) {
+                        throw new Error("Division by zero.");
+                    }
+
+                    return left / right;
+
+                case "^":
+                    return Math.pow(left, right);
+            }
+        }
+
+
+        // 10. RISK DETECTOR
+
+        function detectRisk(tokens) {
+
+            for (let i = 0; i < tokens.length; i++) {
+
+                if (
+                    tokens[i] === "/" &&
+                    tokens[i + 1] === "0"
+                ) {
+
+                    return "Warning: Division by zero detected.";
+                }
+            }
+
+            return "No direct division-by-zero risk detected.";
+        }
+
+
+        // 11. BASIC SIMPLIFICATION
+
+        function simplify(expression) {
+
+            expression = expression.replace(/\s+/g, "");
+
+            expression = expression.replace(/x\+0/g, "x");
+            expression = expression.replace(/0\+x/g, "x");
+
+            expression = expression.replace(/x\*1/g, "x");
+            expression = expression.replace(/1\*x/g, "x");
+
+            expression = expression.replace(/x\*0/g, "0");
+            expression = expression.replace(/0\*x/g, "0");
+
+            return expression;
+        }
+
+
+        // 12. REPEATED SUBEXPRESSION
+
+        function getSignature(node) {
+
+            if (node === null) {
+                return "";
+            }
+
+            return node.value +
+                "(" + getSignature(node.left) + ")" +
+                "(" + getSignature(node.right) + ")";
+        }
+
+
+        function detectRepeated(node, counts = {}) {
+
+            if (node === null) {
+                return counts;
+            }
+
+            let signature = getSignature(node);
+
+            counts[signature] =
+                (counts[signature] || 0) + 1;
+
+            detectRepeated(node.left, counts);
+            detectRepeated(node.right, counts);
+
+            return counts;
+        }
+
+
+        // 13. MAIN PROCESSING FUNCTION
+
+        function processExpression() {
+
+            const expression =
+                document.getElementById("expression").value.trim();
+
+            const status =
+                document.getElementById("status");
+
+            try {
+
+                const tokens = tokenize(expression);
+
+                validate(tokens);
+
+                const postfix = infixToPostfix(tokens);
+
+                const prefix = infixToPrefix(tokens);
+
+                const tree = buildTree(postfix);
+
+                document.getElementById("infix").textContent =
+                    tokens.join(" ");
+
+                document.getElementById("postfix").textContent =
+                    postfix.join(" ");
+
+                document.getElementById("prefix").textContent =
+                    prefix.join(" ");
+
+                document.getElementById("risk").textContent =
+                    detectRisk(tokens);
+
+                document.getElementById("simplified").textContent =
+                    simplify(expression);
+
+                document.getElementById("tree").textContent =
+                    treeToText(tree);
+
+                const repeated = detectRepeated(tree);
+
+                const repeatedItems = Object.keys(repeated).filter(
+                    key => repeated[key] > 1
+                );
+
+                document.getElementById("repeated").textContent =
+                    repeatedItems.length > 0
+                    ? "Repeated structure found."
+                    : "No repeated subexpression found.";
+
+                try {
+
+                    const answer = evaluatePostfix(postfix);
+
+                    document.getElementById("answer").textContent =
+                        answer;
+
+                    document.getElementById("treeAnswer").textContent =
+                        evaluateTree(tree);
+
+                } catch (error) {
+
+                    document.getElementById("answer").textContent =
+                        error.message;
+
+                    document.getElementById("treeAnswer").textContent =
+                        "-";
+                }
+
+                status.textContent =
+                    "Expression processed successfully.";
+
+                status.className = "status success";
+
+            } catch (error) {
+
+                status.textContent = error.message;
+
+                status.className = "status error";
+            }
+        }
+
+
+        // 14. CLEAR FUNCTION
+
+        function clearAll() {
+
+            document.getElementById("expression").value = "";
+
+            document.getElementById("status").textContent = "";
+
+            document.getElementById("infix").textContent = "-";
+
+            document.getElementById("postfix").textContent = "-";
+
+            document.getElementById("prefix").textContent = "-";
+
+            document.getElementById("answer").textContent = "-";
+
+            document.getElementById("treeAnswer").textContent = "-";
+
+            document.getElementById("risk").textContent =
+                "No analysis performed.";
+
+            document.getElementById("simplified").textContent = "-";
+
+            document.getElementById("tree").textContent =
+                "Tree will appear here.";
+
+            document.getElementById("repeated").textContent = "-";
+        }
+
+    </script>
+
+</body>
+</html>
